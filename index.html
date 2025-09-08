@@ -1,41 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-<<<<<<< HEAD
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>main character</title>
   <meta name="color-scheme" content="light dark" />
-=======
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Spinner</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <div id="app" class="app">
-      <header class="topbar">
-        <h1 class="title">Adjective Spinner</h1>
-        <button id="historyToggle" class="icon-btn" aria-expanded="false" aria-controls="historyPanel" title="History">
-          <span class="icon" aria-hidden="true">☰</span>
-          <span class="visually-hidden">Toggle history</span>
-        </button>
-      </header>
->>>>>>> 4950a2db753b980488edf15ea62605f36b670411
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8495739879342812" crossorigin="anonymous"></script>
 
   <style>
     :root {
       --bg: #0f0f12;
-      --card: #17171b;
       --text: #e9e9ee;
       --muted: #9aa0aa;
       --accent: #7c5cff;
       --accent-2: #00d4ff;
       --good: #39d98a;
       --bad: #ff5470;
+      --panel: #141418;
     }
 
     * { box-sizing: border-box; }
@@ -56,18 +38,13 @@
 
     .wrap { width: min(1100px, 100% - 32px); margin-inline: auto; }
 
-    .top {
-      position: sticky; top: 0; z-index: 10;
-      background: linear-gradient(to bottom, rgba(15,15,18,0.9), rgba(15,15,18,0.6) 60%, transparent);
-      backdrop-filter: saturate(1.2) blur(10px);
-      padding: 16px 0 8px;
-    }
+    /* Top bar */
+    .top { position: sticky; top: 0; z-index: 20; background: linear-gradient(to bottom, rgba(15,15,18,0.9), rgba(15,15,18,0.6) 60%, transparent); backdrop-filter: saturate(1.2) blur(10px); padding: 16px 0 8px; }
     .bar { display: flex; align-items: center; gap: 12px; }
     h1 { font-size: clamp(22px, 4vw, 36px); font-weight: 800; letter-spacing: -0.02em; margin: 0; }
     .spacer { flex: 1; }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-
-    .chip, .cta {
+    .chip, .cta, .toggle {
       -webkit-tap-highlight-color: transparent;
       color: var(--text);
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
@@ -75,53 +52,52 @@
       box-shadow: inset 0 1px rgba(255,255,255,.08), 0 6px 20px rgba(0,0,0,.2);
       font-weight: 700; border-radius: 999px;
       padding: 10px 14px; font-size: 14px; line-height: 1; cursor: pointer;
-      transition: transform .15s ease, background .2s ease, border-color .2s ease;
+      transition: transform .15s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
     }
-    .chip:hover, .cta:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.22); }
-    .chip:active, .cta:active { transform: translateY(0); }
+    .chip:hover, .cta:hover, .toggle:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.22); }
+    .chip:active, .cta:active, .toggle:active { transform: translateY(0); }
     .cta { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: rgba(255,255,255,.25); color: #0c0c10; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
     .cta.slaying { filter: hue-rotate(33deg) saturate(1.2); }
 
-    main { padding: 18px 0 32px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
-    .card {
-      display: flex; align-items: center; justify-content: center;
-      aspect-ratio: 1.1 / 1; min-height: 120px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: inset 0 1px rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.24);
-      font-size: clamp(14px, 3.2vw, 22px); font-weight: 800; letter-spacing: .2px;
-      text-transform: none;
-      transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
-    }
-    .card:hover { transform: translateY(-2px); box-shadow: inset 0 1px rgba(255,255,255,.08), 0 20px 40px rgba(0,0,0,.3); border-color: rgba(255,255,255,.2); }
-    .card.accent { background: linear-gradient(135deg, rgba(124,92,255,.15), rgba(0,212,255,.12)); border-color: rgba(124,92,255,.45); }
+    /* Layout */
+    main { padding: 18px 0 24px; }
+    .layout { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+    .stage { display: grid; place-items: center; }
 
-    .foot { padding: 12px 0 18px; opacity: .8; }
-    .foot .wrap { display: flex; align-items: center; justify-content: center; }
+    /* Chart */
+    .chart { width: min(560px, 100%); aspect-ratio: 1/1; position: relative; }
+    .chart svg { width: 100%; height: 100%; filter: drop-shadow(0 24px 60px rgba(0,0,0,.45)); }
+    .chart .slices { transform-origin: 50% 50%; transition: transform .9s cubic-bezier(.2,.8,.2,1); }
+    .chart.spin .slices { transform: rotate(540deg) scale(1.02); }
+    .center-tag { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; font-weight: 900; letter-spacing: .4px; font-size: clamp(16px, 4.5vw, 26px); text-transform: none; color: #0c0c10; }
+    .center-tag span { background: linear-gradient(135deg, var(--accent-2), var(--good)); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 20px rgba(124,92,255,.2); }
 
+    .legend { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .legend .chip { display: inline-flex; align-items: center; gap: 8px; border-radius: 12px; padding: 10px 12px; }
+    .dot { width: 10px; height: 10px; border-radius: 999px; box-shadow: 0 0 0 2px rgba(255,255,255,.15) inset; }
+
+    /* Side panel */
+    .panel-toggle { position: fixed; right: 10px; top: 50%; translate: 0 -50%; z-index: 30; }
+    .panel { position: fixed; right: 0; top: 0; bottom: 0; width: min(320px, 92vw); background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border-left: 1px solid rgba(255,255,255,.12); box-shadow: -20px 0 60px rgba(0,0,0,.35); transform: translateX(100%); transition: transform .35s ease; z-index: 25; display: flex; flex-direction: column; }
+    .panel.open { transform: translateX(0); }
+    .panel-head { display: flex; align-items: center; justify-content: center; padding: 14px; font-weight: 800; }
+    .panel-body { padding: 10px 12px 18px; overflow: auto; scrollbar-width: thin; }
+    .panel .item { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; margin: 6px 0; border-radius: 12px; background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015)); border: 1px solid rgba(255,255,255,.12); cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+    .panel .item:hover { border-color: rgba(255,255,255,.22); }
+
+    /* Theme toggles reflection */
     .good .chip[data-mode="good"], .bad .chip[data-mode="bad"] { outline: 2px solid currentColor; }
     .good .chip[data-mode="good"] { color: var(--good); }
     .bad .chip[data-mode="bad"] { color: var(--bad); }
     .pretty .chip[data-skin="pretty"] { color: var(--accent-2); }
     .ugly .chip[data-skin="ugly"] { color: var(--bad); }
 
-    .good .card { border-color: color-mix(in oklab, var(--good) 30%, rgba(255,255,255,.14)); }
-    .bad .card { border-color: color-mix(in oklab, var(--bad) 30%, rgba(255,255,255,.14)); }
-    .pretty .card { backdrop-filter: saturate(1.3) blur(2px); }
-    .ugly .card { filter: saturate(.7) contrast(1.1); }
+    .pretty .chart svg { filter: drop-shadow(0 30px 80px rgba(0,0,0,.55)); }
+    .ugly .chart svg { filter: drop-shadow(0 18px 40px rgba(0,0,0,.35)) contrast(1.05) saturate(.85); }
 
-    .slay .card { animation: slay 1.2s ease both; }
-    .slay .card:nth-child(3n) { animation-delay: .05s; }
-    .slay .card:nth-child(3n+1) { animation-delay: .15s; }
-    .slay .card:nth-child(3n+2) { animation-delay: .25s; }
-    @keyframes slay { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-6px) scale(1.04); } 100% { transform: translateY(0) scale(1); } }
-
-    @media (max-width: 520px) {
-      .chips { gap: 6px; }
-      .chip, .cta { padding: 9px 12px; font-size: 13px; }
-      .card { min-height: 100px; }
+    @media (max-width: 640px) {
+      .panel-toggle { right: 8px; top: auto; bottom: 12px; translate: 0 0; }
+      .legend { justify-content: center; }
     }
   </style>
 </head>
@@ -141,40 +117,76 @@
   </header>
 
   <main>
-    <div class="wrap grid" id="grid">
-      <div class="card accent">pretty</div>
-      <div class="card">ugly</div>
-      <div class="card accent">hot</div>
-      <div class="card">stupid</div>
-      <div class="card accent">paranoid</div>
-      <div class="card">cringe</div>
-      <div class="card accent">good vibes</div>
-      <div class="card">bad vibes</div>
-      <div class="card accent">slay</div>
-      <div class="card">main character</div>
-      <div class="card accent">side character</div>
-      <div class="card">dramatic</div>
+    <div class="wrap">
+      <div class="layout">
+        <section class="stage">
+          <div class="chart" id="chartBox">
+            <svg id="chart" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <radialGradient id="glow" cx="50%" cy="45%" r="60%">
+                  <stop offset="0%" stop-color="rgba(255,255,255,.35)"/>
+                  <stop offset="60%" stop-color="rgba(255,255,255,.04)"/>
+                  <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                </radialGradient>
+              </defs>
+              <g class="slices" id="slices"></g>
+              <circle cx="100" cy="100" r="64" fill="url(#glow)" opacity=".35"></circle>
+            </svg>
+            <div class="center-tag"><span>dramatic</span></div>
+          </div>
+          <div class="legend" id="legend"></div>
+        </section>
+      </div>
     </div>
   </main>
 
-  <footer class="foot">
-    <div class="wrap">
+  <button class="toggle panel-toggle" id="panelToggle">side character</button>
+  <aside class="panel" id="panel">
+    <div class="panel-head">side character</div>
+    <div class="panel-body" id="history"></div>
+  </aside>
+
+  <footer class="foot" style="padding:12px 0 18px; opacity:.8;">
+    <div class="wrap" style="display:flex; align-items:center; justify-content:center;">
       <span>side character</span>
     </div>
   </footer>
 
   <script>
+    // Visible trait pool (limited to allowed words)
+    const TRAITS = [
+      'ugly','pretty','hot','stupid','paranoid','cringe','good vibes','bad vibes','dramatic'
+    ];
+
+    // Color mapping for slices
+    const COLORS = {
+      'ugly': '#ff6b86',
+      'pretty': '#00d4ff',
+      'hot': '#ff9d4d',
+      'stupid': '#f3d35e',
+      'paranoid': '#4dc7ff',
+      'cringe': '#b184ff',
+      'good vibes': '#39d98a',
+      'bad vibes': '#ff5470',
+      'dramatic': '#ff6ec7'
+    };
+
     const body = document.body;
     const slayBtn = document.getElementById('slay');
-    const grid = document.getElementById('grid');
+    const panel = document.getElementById('panel');
+    const panelToggle = document.getElementById('panelToggle');
+    const slices = document.getElementById('slices');
+    const legend = document.getElementById('legend');
+    const chartBox = document.getElementById('chartBox');
+    const historyView = document.getElementById('history');
 
+    // Theme toggles
     document.querySelectorAll('.chip[data-mode]').forEach(btn => {
       btn.addEventListener('click', () => {
         body.classList.toggle('good', btn.dataset.mode === 'good');
         body.classList.toggle('bad', btn.dataset.mode === 'bad');
       });
     });
-
     document.querySelectorAll('.chip[data-skin]').forEach(btn => {
       btn.addEventListener('click', () => {
         body.classList.toggle('pretty', btn.dataset.skin === 'pretty');
@@ -182,14 +194,169 @@
       });
     });
 
+    // Panel toggle
+    panelToggle.addEventListener('click', () => {
+      panel.classList.toggle('open');
+    });
+
+    // Cookie helpers
+    function setCookie(name, value, days) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days*24*60*60*1000));
+      document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+    }
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'));
+      return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    const COOKIE_KEY = 'vibes-history';
+
+    function loadHistory() {
+      try {
+        const raw = getCookie(COOKIE_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch { return []; }
+    }
+
+    function saveHistory(list) {
+      // keep last 24 entries
+      const trimmed = list.slice(-24);
+      setCookie(COOKIE_KEY, JSON.stringify(trimmed), 365);
+    }
+
+    function renderHistory(list) {
+      historyView.innerHTML = '';
+      const frag = document.createDocumentFragment();
+      list.slice().reverse().forEach((entry, idx) => {
+        const item = document.createElement('button');
+        item.className = 'item';
+        item.setAttribute('type', 'button');
+        // chips
+        entry.t.forEach(t => {
+          const b = document.createElement('span');
+          b.className = 'chip';
+          b.style.borderColor = 'rgba(255,255,255,.14)';
+          b.style.background = 'linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))';
+          b.textContent = t;
+          item.appendChild(b);
+        });
+        item.addEventListener('click', () => {
+          applyState(entry.t, entry.w);
+        });
+        frag.appendChild(item);
+      });
+      historyView.appendChild(frag);
+    }
+
+    // Random helpers
+    function pickFour(arr) {
+      const pool = arr.slice();
+      const out = [];
+      for (let i=0;i<4;i++) {
+        const j = Math.floor(Math.random() * pool.length);
+        out.push(pool.splice(j,1)[0]);
+      }
+      return out;
+    }
+    function randomWeights(n) {
+      const w = Array.from({length:n}, () => 1 + Math.random());
+      const total = w.reduce((a,b)=>a+b,0);
+      return w.map(x => x/total);
+    }
+
+    // Chart rendering
+    function polar(cx, cy, r, a) {
+      const rad = (a - 90) * Math.PI / 180; // start at top
+      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function arcD(cx, cy, rOuter, rInner, start, end) {
+      const so = polar(cx, cy, rOuter, start);
+      const eo = polar(cx, cy, rOuter, end);
+      const si = polar(cx, cy, rInner, end);
+      const ei = polar(cx, cy, rInner, start);
+      const large = (end - start) % 360 > 180 ? 1 : 0;
+      return [
+        `M ${so.x.toFixed(3)} ${so.y.toFixed(3)}`,
+        `A ${rOuter} ${rOuter} 0 ${large} 1 ${eo.x.toFixed(3)} ${eo.y.toFixed(3)}`,
+        `L ${si.x.toFixed(3)} ${si.y.toFixed(3)}`,
+        `A ${rInner} ${rInner} 0 ${large} 0 ${ei.x.toFixed(3)} ${ei.y.toFixed(3)}`,
+        'Z'
+      ].join(' ');
+    }
+
+    function drawPie(traits, weights) {
+      const cx = 100, cy = 100, rO = 90, rI = 55;
+      slices.innerHTML = '';
+      let a = 0;
+      const frag = document.createDocumentFragment();
+      traits.forEach((t, i) => {
+        const sweep = weights[i] * 360;
+        const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d', arcD(cx, cy, rO, rI, a, a + sweep));
+        path.setAttribute('fill', COLORS[t] || '#888');
+        path.setAttribute('opacity', '0.98');
+        path.style.transition = 'opacity .25s ease';
+        frag.appendChild(path);
+        a += sweep;
+      });
+      slices.appendChild(frag);
+
+      // Legend
+      legend.innerHTML = '';
+      const legFrag = document.createDocumentFragment();
+      traits.forEach((t) => {
+        const b = document.createElement('span');
+        b.className = 'chip';
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = COLORS[t] || '#888';
+        b.appendChild(dot);
+        const label = document.createTextNode(' ' + t);
+        b.appendChild(label);
+        legFrag.appendChild(b);
+      });
+      legend.appendChild(legFrag);
+    }
+
+    function applyState(traits, weights, animate = true) {
+      if (animate) {
+        chartBox.classList.remove('spin');
+        void chartBox.offsetWidth;
+        chartBox.classList.add('spin');
+      }
+      drawPie(traits, weights);
+    }
+
+    function generate() {
+      const traits = pickFour(TRAITS);
+      const weights = randomWeights(4);
+      applyState(traits, weights, true);
+      const list = loadHistory();
+      list.push({ t: traits, w: weights });
+      saveHistory(list);
+      renderHistory(list);
+    }
+
+    // Hook slay
     slayBtn.addEventListener('click', () => {
       slayBtn.classList.add('slaying');
-      grid.classList.remove('slay');
-      void grid.offsetWidth; // restart animation
-      grid.classList.add('slay');
       setTimeout(() => slayBtn.classList.remove('slaying'), 500);
+      generate();
     });
+
+    // Boot
+    const initialList = loadHistory();
+    if (initialList.length) {
+      const last = initialList[initialList.length - 1];
+      applyState(last.t, last.w, false);
+      renderHistory(initialList);
+    } else {
+      generate();
+    }
   </script>
 </body>
 </html>
-
