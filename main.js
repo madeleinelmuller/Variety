@@ -1,39 +1,53 @@
 // Spin The Traits — responsive animated SVG pie with history in cookies
 
 // --- Data & Config ---------------------------------------------------------
-// A large pool of traits (>500). Each spin will sample a small subset
-// to keep the chart readable while the pool itself is rich.
+// Large adjectives-only pool (>500). Sampling keeps charts readable.
 
 const TRAIT_POOL = (() => {
-  const base = [
-    { key: 'sexy', label: 'Sexy', color: '#f472b6' },
-    { key: 'shy', label: 'Shy', color: '#60a5fa' },
-    { key: 'stupid', label: 'Stupid', color: '#f59e0b' },
-    { key: 'side', label: 'Side Character', color: '#22c55e' },
-    { key: 'mysterious', label: 'Mysterious', color: '#a78bfa' },
+  const ADJECTIVES = [
+    'Adorable','Adventurous','Agile','Alert','Amazing','Ambitious','Amiable','Ample','Amusing','Angelic','Animated','Appreciative','Ardent','Artful','Artistic','Astonishing','Athletic','Attentive','Authentic','Aware','Awesome',
+    'Balanced','Beautiful','Beloved','Best','Bewitching','Big','Blissful','Bold','Bouncy','Brave','Breezy','Bright','Brilliant','Brisk','Bubbly','Buoyant','Busy','Bustling','Buxom','Buzzing',
+    'Calm','Capable','Carefree','Careful','Caring','Charming','Cheerful','Chic','Classic','Clean','Clear','Clever','Colorful','Comely','Comfortable','Compassionate','Confident','Cool','Courageous','Cozy','Creative','Crisp','Cuddly','Curious','Cute',
+    'Dainty','Daring','Dashing','Dazzling','Decent','Decisive','Deep','Defiant','Delicate','Delightful','Dependable','Detailed','Determined','Devoted','Dignified','Diligent','Distinct','Divine','Dreamy','Dynamic',
+    'Eager','Easy','Ebullient','Ecstatic','Educated','Effective','Efficient','Elegant','Electric','Eloquent','Eminent','Empathetic','Enchanting','Endearing','Endless','Energetic','Engaging','Enjoyable','Enlightened','Epic','Equable','Essential','Ethereal','Excellent','Excited','Exciting','Exotic','Expansive','Expert','Exquisite','Extraordinary','Exuberant',
+    'Fair','Faithful','Fanciful','Fancy','Fantastic','Fast','Feisty','Felicitous','Fervent','Festive','Fierce','Fine','Flexible','Flourishing','Fluid','Focused','Fond','Forceful','Fortunate','Fragrant','Free','Fresh','Friendly','Fun','Funny','Futuristic',
+    'Gallant','Generous','Genial','Gentle','Genuine','Gifted','Glad','Gleaming','Glorious','Glossy','Good','Gorgeous','Graceful','Gracious','Grand','Grateful','Great','Gregarious','Grounded','Growing',
+    'Handsome','Happy','Hardy','Harmonious','Healthy','Hearty','Helpful','Heroic','Honest','Hopeful','Humble','Humorous','Hydrated','Hyper','Hypnotic',
+    'Ideal','Imaginative','Immense','Immaculate','Impeccable','Important','Incisive','Incredible','Independent','Ingenious','Innovative','Insightful','Inspired','Intelligent','Intense','Interesting','Intrepid','Inviting','Iridescent','Irresistible',
+    'Jaunty','Jazzy','Jocose','Jolly','Jovial','Joyful','Joyous','Juicy','Jumpy',
+    'Keen','Kind','Kinetic','Knowing','Kosher',
+    'Laudable','Lavish','Legendary','Legible','Light','Likable','Lithe','Lively','Logical','Lovable','Lovely','Loyal','Lucent','Lucid','Lucky','Luminous','Lush','Lustrous',
+    'Magical','Magnanimous','Magnificent','Majestic','Mellow','Memorable','Merciful','Merry','Meticulous','Mighty','Mild','Mindful','Miraculous','Modern','Modest','Momentous','Neat','Nifty','Nimble','Noble','Notable','Noted','Novel','Nurturing','Nutritious',
+    'Obedient','Objective','Observant','Open','Optimistic','Opulent','Orderly','Original','Outgoing','Outstanding',
+    'Peaceful','Peachy','Peppy','Perfect','Perky','Persevering','Persistent','Phenomenal','Picturesque','Playful','Pleasing','Pleasant','Plucky','Polished','Popular','Positive','Powerful','Precious','Precise','Premier','Pretty','Priceless','Proactive','Productive','Proficient','Prolific','Prosperous','Proud','Prudent','Pumped','Pure',
+    'Quaint','Qualified','Quick','Quick-witted','Quiet',
+    'Radiant','Rapid','Rare','Rational','Ready','Real','Reassuring','Refined','Refreshing','Reliable','Remarkable','Resilient','Resolute','Resourceful','Respectful','Rested','Rich','Right','Robust','Romantic','Rosy','Rounded','Royal','Rugged','Ruling','Rustic',
+    'Sacred','Sage','Sane','Sassy','Satisfying','Savvy','Secure','Sedate','Select','Selfless','Sensational','Sensible','Sensitive','Serene','Sharp','Shimmery','Shiny','Silent','Silky','Sincere','Skillful','Sleek','Slick','Slim','Smart','Smiling','Smooth','Snappy','Snazzy','Soft','Solar','Solid','Soothing','Sparkling','Special','Speedy','Spirited','Splendid','Spontaneous','Sporty','Spotless','Spry','Stable','Stately','Steadfast','Stellar','Sterling','Still','Straight','Striking','Strong','Stunning','Sturdy','Stylish','Suave','Sublime','Successful','Succinct','Sunny','Super','Superb','Supreme','Sure','Surgical','Surprising','Sweet','Swift',
+    'Talented','Tame','Tasty','Teachable','Terrific','Thankful','Thorough','Thoughtful','Thrilled','Thrilling','Tidy','Timeless','Tough','Tranquil','Trendy','Triumphant','True','Trusting','Trustworthy','Truthful','Twinkling',
+    'Uber','Ultimate','Ultra','Unbeaten','Unbiased','Uncommon','Undaunted','Understated','Undoubted','Unequaled','Unified','Unique','Unreal','Unrivaled','Upbeat','Upright','Upstanding','Useful','Utopian',
+    'Valiant','Valid','Valuable','Vibrant','Victorious','Vigilant','Vigorous','Virtuous','Vital','Vivid','Vivacious','Vocal',
+    'Warm','Wealthy','Welcome','Well','Whimsical','Whole','Wholesome','Wide','Willing','Winning','Wise','Witty','Wondrous','Worthy',
+    'Youthful','Zany','Zesty','Zen','Zippy',
+    // Colors & descriptive
+    'Amber','Amethyst','Aqua','Aquamarine','Azure','Beige','Black','Blue','Bronze','Brown','Burgundy','Cerulean','Chartreuse','Chocolate','Cobalt','Copper','Coral','Crimson','Cyan','Emerald','Fuchsia','Gold','Golden','Gray','Green','Indigo','Ivory','Jade','Lavender','Lilac','Lime','Magenta','Maroon','Mauve','Navy','Olive','Orange','Peach','Pink','Platinum','Purple','Ruby','Saffron','Sapphire','Scarlet','Silver','Tan','Teal','Turquoise','Ultramarine','Violet','White','Yellow',
+    // Nature/weather/texture
+    'Airy','Balmy','Breezy','Cloudless','Cloudy','Dewy','Fluffy','Foggy','Freshened','Frosty','Gentle','Glassy','Glittering','Glossy','Grainy','Icy','Iridescent','Luminous','Matte','Misty','Pearly','Polished','Pristine','Rainy','Satiny','Shimmering','Shiny','Silken','Sleety','Snowy','Softened','Sparkly','Springy','Starry','Stormy','Sunny','Velvety','Windy',
+    // Sizes/shape
+    'Ample','Big','Broad','Bulky','Colossal','Compact','Curvy','Dainty','Enormous','Full','Giant','Gigantic','Grand','Huge','Immense','Jumbo','Little','Massive','Mini','Petite','Plump','Round','Slim','Small','Sizable','Tall','Tiny','Trim',
+    // Taste/smell
+    'Aromatic','Delectable','Flavorful','Fragrant','Savory','Spicy','Sugary','Sweet','Tangy','Toasty','Tasty','Umami','Zesty'
   ];
-
-  const adjectives = [
-    'Brave','Calm','Clever','Curious','Daring','Dreamy','Elegant','Eager','Fierce','Friendly','Gentle','Gloomy','Graceful','Happy','Honest','Humble','Kind','Lively','Loyal','Lucky','Nervy','Noble','Proud','Quiet','Quirky','Radiant','Rebel','Silly','Sly','Smarty','Snarky','Spicy','Steady','Swift','Tidy','Trendy','Vivid','Witty','Zany','Bold','Chill','Crafty','Dizzy','Feisty','Gritty','Jolly','Mellow','Mighty','Nifty','Peppy','Plucky','Spunky','Spry','Sunny','Tough','Whimsy','Wise','Zesty','Stoic','Artsy','Broody','Cheery','Crisp','Dapper','Dramatic','Earthy','Edgy','Flashy','Fuzzy','Geeky','Gleeful','Gutsy','Icy','Jaunty','Jazzy','Jumpy','Keen','Kooky','Leafy','Lunar','Lucky','Mirthful','Moody','Nifty','Nimble','Perky','Practical','Quaint','Rugged','Rustic','Shady','Shiny','Slick','Smug','Snug','Spirited','Stormy','Suave','Twinkly','Upbeat','Valiant','Zippy'
-  ];
-  const archetypes = [
-    'Hero','Scholar','Trickster','Guardian','Sage','Wanderer','Artist','Leader','Healer','Outlaw','Mystic','Inventor','Poet','Scout','Jester','Strategist','Merchant','Seer','Knight','Rogue','Tactician','Explorer','Pilot','Chef','Druid','Bard','Monk','Captain','Detective','Engineer','Smith','Ranger','Alchemist','Magician','Diplomat','Caretaker','Gardener','Navigator','Professor','Athlete'
-  ];
-
-  const extras = [];
-  let idx = 0;
-  outer: for (let a = 0; a < adjectives.length; a++) {
-    for (let b = 0; b < archetypes.length; b++) {
-      const label = `${adjectives[a]} ${archetypes[b]}`;
-      const key = `t${String(idx + 1).padStart(3, '0')}`;
-      const hue = (idx * 137.508) % 360; // golden angle sweep for distinct colors
-      const color = `hsl(${hue.toFixed(2)}, 70%, 60%)`;
-      extras.push({ key, label, color });
-      idx++;
-      if (idx >= 500) break outer;
-    }
+  // If < 500, extend by cycling unique variants with numeric keys but same labels.
+  const out = [];
+  const target = Math.max(ADJECTIVES.length, 520);
+  for (let i = 0; i < target; i++) {
+    const label = ADJECTIVES[i % ADJECTIVES.length];
+    const key = `a${String(i + 1).padStart(3, '0')}`;
+    const hue = (i * 137.508) % 360;
+    const color = `hsl(${hue.toFixed(2)}, 70%, 60%)`;
+    out.push({ key, label, color });
   }
-  return base.concat(extras);
+  return out;
 })();
 
 const HISTORY_COOKIE = 'spin_history_v1';
@@ -84,6 +98,7 @@ const svg = $('chart');
 const gSlices = $('slices');
 const gLines = $('connectors');
 const gLabels = $('labels');
+const gCenter = $('center');
 const spinBtn = $('spinBtn');
 const historyToggle = $('historyToggle');
 const historyPanel = $('historyPanel');
@@ -118,6 +133,9 @@ function renderSlices(data, rotation = 0) {
     path.setAttribute('fill', trait?.color || '#888');
     path.setAttribute('fill-opacity', '0.92');
     path.dataset.key = d.key;
+    path.classList.add('slice');
+    path.addEventListener('mouseenter', () => setHover(d.key, true));
+    path.addEventListener('mouseleave', () => setHover(d.key, false));
     gSlices.appendChild(path);
   }
 }
@@ -192,6 +210,8 @@ function layoutLabels(data, rotation = 0) {
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
       path.setAttribute('fill', 'none');
       path.setAttribute('points', `${outer[0]},${outer[1]} ${elbowX},${elbowY} ${labelX},${elbowY}`);
+      path.dataset.key = it.key;
+      path.classList.add('connector');
       gLines.appendChild(path);
 
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -203,6 +223,10 @@ function layoutLabels(data, rotation = 0) {
       const baseSize = clamp(18 + 0.02 * state.radius, 12, 24);
       text.setAttribute('font-size', baseSize);
       text.setAttribute('text-anchor', it.side === 'right' ? 'start' : 'end');
+      text.dataset.key = it.key;
+      text.classList.add('label');
+      text.addEventListener('mouseenter', () => setHover(it.key, true));
+      text.addEventListener('mouseleave', () => setHover(it.key, false));
       gLabels.appendChild(text);
 
       // Ensure text fits horizontally between labelX and visible edge
@@ -288,7 +312,8 @@ function spin() {
   const rotationTarget = (randInt(2, 6) + Math.random()) * Math.PI * 2; // several turns
 
   const startTime = performance.now();
-  const duration = 1400; // ms
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const duration = prefersReduced ? 400 : 1400; // ms
   function frame(now) {
     const t = clamp((now - startTime) / duration, 0, 1);
     const rot = easeOutCubic(t) * rotationTarget;
@@ -301,6 +326,7 @@ function spin() {
     state.current = { slices: finalSlices, rotation: rot % (Math.PI * 2) };
     state.spinning = false;
     addToHistory(finalSlices);
+    showCenterLabel(finalSlices);
   }
 }
 
@@ -366,6 +392,31 @@ function renderHistory() {
   }
 }
 
+// Hover helpers to keep interactions consistent
+function setHover(key, on) {
+  document.querySelectorAll(`[data-key="${key}"]`).forEach(el => {
+    if (on) el.classList.add('active'); else el.classList.remove('active');
+  });
+}
+
+function showCenterLabel(slices) {
+  const max = slices.reduce((a, b) => (a.pct > b.pct ? a : b));
+  const trait = TRAIT_POOL.find(t => t.key === max.key);
+  gCenter.innerHTML = '';
+  const t1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t1.setAttribute('x', '500');
+  t1.setAttribute('y', '485');
+  t1.setAttribute('class', 'big');
+  t1.textContent = trait?.label || max.key;
+  const t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t2.setAttribute('x', '500');
+  t2.setAttribute('y', '515');
+  t2.setAttribute('class', 'small');
+  t2.textContent = `${Math.round(max.pct)}%`; 
+  gCenter.appendChild(t1);
+  gCenter.appendChild(t2);
+}
+
 // --- Drawer toggle ---------------------------------------------------------
 function setHistoryOpen(open) {
   historyPanel.setAttribute('aria-hidden', String(!open));
@@ -395,6 +446,12 @@ window.addEventListener('resize', () => {
   if (state.current) render(state.current.slices, state.current.rotation);
 });
 
+// Keyboard shortcuts
+window.addEventListener('keydown', (e) => {
+  if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); spin(); }
+  if (e.key.toLowerCase() === 'h') { setHistoryOpen(historyPanel.getAttribute('aria-hidden') === 'true'); }
+});
+
 // --- Init ------------------------------------------------------------------
 loadHistory();
 
@@ -404,3 +461,4 @@ const initKeys = sampleTraitKeys(initCount);
 const initial = buildSlices(randomDistribution(initCount), initKeys);
 state.current = { slices: initial, rotation: 0 };
 render(initial, 0);
+showCenterLabel(initial);

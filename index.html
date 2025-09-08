@@ -3,32 +3,35 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Spin The Traits</title>
+    <title>Adjective Spinner</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div id="app" class="app">
       <header class="topbar">
-        <h1 class="title">Spin The Traits</h1>
+        <h1 class="title">Adjective Spinner</h1>
         <button id="historyToggle" class="icon-btn" aria-expanded="false" aria-controls="historyPanel" title="History">
-          <span class="icon">☰</span>
+          <span class="icon" aria-hidden="true">☰</span>
+          <span class="visually-hidden">Toggle history</span>
         </button>
       </header>
 
       <main class="main">
         <section id="chartSection" class="chart-section">
           <!-- Chart and labels live inside this responsive SVG container -->
-          <div class="chart-wrap">
+          <div class="chart-wrap" aria-describedby="usageHint">
             <svg id="chart" class="chart" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" aria-labelledby="chartTitle">
               <title id="chartTitle">Pie chart of randomly generated traits</title>
               <g id="slices"></g>
               <g id="connectors" stroke-linecap="round"></g>
               <g id="labels"></g>
+              <g id="center"></g>
             </svg>
           </div>
           <div class="controls">
-            <button id="spinBtn" class="primary">Spin</button>
+            <button id="spinBtn" class="primary" title="Spin (Space)">Spin Adjectives</button>
           </div>
+          <p id="usageHint" class="hint">Press Space to spin · H to open history</p>
         </section>
 
         <aside id="historyPanel" class="history" aria-hidden="true">
@@ -45,4 +48,3 @@
     <script type="module" src="main.js"></script>
   </body>
   </html>
-
