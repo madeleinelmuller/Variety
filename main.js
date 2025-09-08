@@ -44,7 +44,10 @@ const TRAIT_POOL = (() => {
     const label = ADJECTIVES[i % ADJECTIVES.length];
     const key = `a${String(i + 1).padStart(3, '0')}`;
     const hue = (i * 137.508) % 360;
-    const color = `hsl(${hue.toFixed(2)}, 70%, 60%)`;
+    // Use sine waves on hue to vary saturation and lightness for a more organic palette
+    const saturation = 68 + 12 * Math.sin(hue * Math.PI / 90);
+    const lightness = 64 - 8 * Math.cos(hue * Math.PI / 180);
+    const color = `hsl(${hue.toFixed(2)}, ${saturation.toFixed(2)}%, ${lightness.toFixed(2)}%)`;
     out.push({ key, label, color });
   }
   return out;
@@ -119,10 +122,10 @@ function computeChartGeometry() {
   state.center.y = 500;
 }
 
-function renderSlices(data, rotation = 0) {
+function renderSlices(data, rotation = 0, scale = 1) {
   // data: [{ key, pct, start, end }], angles in radians
   const { x: cx, y: cy } = state.center;
-  const r = state.radius;
+  const r = state.radius * scale; // Apply scale for pop-in animation
   gSlices.innerHTML = '';
   for (const d of data) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -140,9 +143,12 @@ function renderSlices(data, rotation = 0) {
   }
 }
 
-function layoutLabels(data, rotation = 0) {
+function layoutLabels(data, rotation = 0, opacity = 1) {
   const { x: cx, y: cy } = state.center;
   const rLabel = state.labelRadius;
+
+  gLines.style.opacity = opacity;
+  gLabels.style.opacity = opacity;
 
   // Compute preliminary positions and split left/right
   const items = data.map(d => {
@@ -162,23 +168,32 @@ function layoutLabels(data, rotation = 0) {
   const minGap = 28; // minimum label spacing
 
   function distribute(rows) {
+    if (!rows.length) return;
+
+    // Spread out to minimum gap
     for (let i = 1; i < rows.length; i++) {
       const prev = rows[i - 1];
       const cur = rows[i];
-      if (cur.ay - prev.ay < minGap) {
-        rows[i].ay = prev.ay + minGap;
+      const gap = cur.ay - prev.ay;
+      if (gap < minGap) {
+        cur.ay = prev.ay + minGap;
       }
     }
-    // Clamp to top/bottom then adjust upwards if overflow
-    if (rows.length) {
-      const overflowBottom = rows[rows.length - 1].ay - bottomBound;
-      if (overflowBottom > 0) {
-        for (let i = rows.length - 1; i >= 0; i--) rows[i].ay -= overflowBottom;
-      }
-      const overflowTop = topBound - rows[0].ay;
-      if (overflowTop > 0) {
-        for (let i = 0; i < rows.length; i++) rows[i].ay += overflowTop;
-      }
+
+    // Center the block of labels vertically in the available space
+    const firstY = rows[0].ay;
+    const lastY = rows[rows.length - 1].ay;
+    const blockHeight = lastY - firstY;
+    const availableHeight = bottomBound - topBound;
+
+    let shift = topBound - firstY; // Default to aligning to the top
+    if (blockHeight < availableHeight) {
+      // If there's enough space, center the block
+      shift += (availableHeight - blockHeight) / 2;
+    }
+
+    for (const row of rows) {
+      row.ay += shift;
     }
   }
   distribute(left);
@@ -249,15 +264,17 @@ function layoutLabels(data, rotation = 0) {
             text.setAttribute('font-size', String(baseSize * scale));
           }
         }
-      } catch {}
+      } catch (e) {
+        console.error('BBox calculation failed. This can happen if the SVG is not rendered.', e);
+      }
     }
   }
 }
 
-function render(data, rotation = 0) {
+function render(data, rotation = 0, scale = 1) {
   computeChartGeometry();
-  renderSlices(data, rotation);
-  layoutLabels(data, rotation);
+  renderSlices(data, rotation, scale);
+  layoutLabels(data, rotation, scale); // Use scale for opacity, too
 }
 
 // --- Spin logic ------------------------------------------------------------
@@ -305,6 +322,7 @@ function buildSlicesFromValues(values) {
 function spin() {
   if (state.spinning) return;
   state.spinning = true;
+  gCenter.innerHTML = ''; // Clear center label on spin
   const count = randInt(5, 8); // keep a readable number of slices
   const keys = sampleTraitKeys(count);
   const pcts = randomDistribution(count);
@@ -314,10 +332,19 @@ function spin() {
   const startTime = performance.now();
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const duration = prefersReduced ? 400 : 1400; // ms
+
   function frame(now) {
-    const t = clamp((now - startTime) / duration, 0, 1);
-    const rot = easeOutCubic(t) * rotationTarget;
-    render(slices, rot);
+    const elapsed = now - startTime;
+    const t = clamp(elapsed / duration, 0, 1);
+    const easedT = easeOutCubic(t);
+    const rot = easedT * rotationTarget;
+
+    // Add a pop-in animation for the radius at the beginning
+    const popInDuration = prefersReduced ? 0 : 500; // ms
+    const popInT = clamp(elapsed / popInDuration, 0, 1);
+    const scale = easeOutCubic(popInT);
+
+    render(slices, rot, scale);
     if (t < 1) requestAnimationFrame(frame); else finish(slices, rot);
   }
   requestAnimationFrame(frame);
@@ -341,9 +368,22 @@ function loadHistory() {
 
 function saveHistory() {
   try {
-    const trimmed = state.history.slice(-HISTORY_LIMIT);
-    setCookie(HISTORY_COOKIE, JSON.stringify(trimmed));
-  } catch {}
+    let historyToSave = state.history.slice(-HISTORY_LIMIT);
+    let jsonHistory = JSON.stringify(historyToSave);
+    const COOKIE_BYTE_LIMIT = 3800; // Stay well under 4KB browser limits
+
+    // If the cookie is too large, remove the oldest entries until it fits.
+    while (new Blob([jsonHistory]).size > COOKIE_BYTE_LIMIT && historyToSave.length > 1) {
+      historyToSave.shift(); // remove oldest
+      jsonHistory = JSON.stringify(historyToSave);
+    }
+
+    // The state should reflect what's actually saved
+    state.history = historyToSave;
+    setCookie(HISTORY_COOKIE, jsonHistory);
+  } catch (e) {
+    console.error("Error saving history to cookie:", e);
+  }
 }
 
 function addToHistory(slices) {
