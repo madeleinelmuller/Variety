@@ -1,0 +1,6 @@
+# Server logs and process IDs
+server.log
+server.pid
+
+# Agent scratch directory
+jules-scratch/
